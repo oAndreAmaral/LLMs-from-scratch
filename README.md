@@ -13,16 +13,15 @@ Right now the repository only contains the **`LLMs_Build_and_Train`** section (m
 | [`Train_Tokenizer.ipynb`](LLMs_Build_and_Train/Train_Tokenizer.ipynb) | Trains a Byte Pair Encoding (BPE) tokenizer with [SentencePiece](https://github.com/google/sentencepiece) on a text corpus (`wiki.txt`), producing a `.model`/`.vocab` pair. |
 | [`LLM_Scratch_Simple.ipynb`](LLMs_Build_and_Train/LLM_Scratch_Simple.ipynb) | Implements and trains a decoder-only GPT-style transformer from scratch (embeddings, positional embeddings, causal multi-head self-attention, feed-forward blocks, layer norm, residual connections), then runs an interactive inference loop with the trained model. |
 | `requirements.txt` | Python dependencies for both notebooks. |
-| `wiki_tokenizer.model` / `wiki_tokenizer.vocab` | Pretrained tokenizer produced by `Train_Tokenizer.ipynb` (vocab size 4096), ready to use with the training notebook. |
-| `wiki_tokenizer_test.model` / `wiki_tokenizer_test.vocab` | A secondary/test tokenizer artifact from an earlier training run. |
+| `wandb/` | Logged metrics from past local training runs ([Weights & Biases](https://wandb.ai)). |
 
 The model implemented in `LLM_Scratch_Simple.ipynb` is a small GPT with:
 
 - **Architecture:** 7 transformer blocks, 7 attention heads per block, embedding size 384, context window of 512 tokens — about **19.8M parameters**.
 - **Training:** AdamW optimizer with cosine-annealed learning rate, gradient clipping, dropout regularization, checkpointing to `models/`, and optional [Weights & Biases](https://wandb.ai) logging.
-- **Data:** a small excerpt of English Wikipedia (`wiki.txt`), tokenized with the SentencePiece BPE tokenizer above.
+- **Data:** a small excerpt of English Wikipedia (`wiki.txt`), tokenized with a SentencePiece BPE tokenizer trained by `Train_Tokenizer.ipynb`.
 
-Not included in the repository (excluded via `.gitignore` because they exceed GitHub's 100MB file-size limit, or are just local run artifacts): the raw `wiki.txt` corpus, the tokenized `encoded_data.pt`, trained checkpoints under `models/`, and `wandb/` run logs. These are generated locally when you run the notebooks, as described below.
+Not included in the repository (excluded via `.gitignore` — either too large for GitHub's 100MB file-size limit, or kept local-only by choice): the raw `wiki.txt` corpus, the tokenized `encoded_data.pt`, trained checkpoints under `models/`, and the tokenizer artifacts (`wiki_tokenizer*.model` / `.vocab`). These are all generated locally when you run the notebooks, as described below.
 
 ## Installation
 
@@ -65,10 +64,12 @@ Not included in the repository (excluded via `.gitignore` because they exceed Gi
    jupyter notebook
    ```
 
-2. **(Optional) Train your own tokenizer** — open `Train_Tokenizer.ipynb` and run it if you want to train a new tokenizer on your own `wiki.txt` corpus. Otherwise, skip this: the repository already ships a pretrained `wiki_tokenizer.model` / `wiki_tokenizer.vocab`.
+2. **Get a tokenizer** — the tokenizer files aren't in the repo, so either:
+   - run `Train_Tokenizer.ipynb` to train your own `wiki_tokenizer_test.model` / `.vocab` on a local `wiki.txt` corpus, or
+   - let the next step download a pretrained one automatically (see below).
 
 3. **Train and/or run the model** — open `LLM_Scratch_Simple.ipynb`:
-   - The second cell downloads the sample dataset and tokenizer files (`wiki.txt`, tokenizer, `encoded_data.pt`) automatically if they aren't already present locally.
+   - The second cell downloads the sample dataset and tokenizer files (`wiki.txt`, `wiki_tokenizer.model` / `.vocab`, `encoded_data.pt`) automatically if they aren't already present locally.
    - Review the **architecture / hyperparameter / training** parameter cells near the top and adjust as needed (e.g. `batch_size` if you have less GPU memory, `train_iters` for how long to train).
    - By default `wandb_log = True`; either run `wandb login` beforehand (or paste your API key when prompted) to log metrics, or set `wandb_log = False` in the notebook to skip it.
    - By default `load_pretrained = True`, so training resumes from `models/latest.pt` if a checkpoint already exists there.
