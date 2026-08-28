@@ -3,12 +3,8 @@
 !/.gitignore
 !/LLMs_Build_and_Train/
 
-# Within LLMs_Build_and_Train, skip large binaries, run logs, and checkpoints
-/LLMs_Build_and_Train/*
-!/LLMs_Build_and_Train/LLM_Scratch_Simple.ipynb
-!/LLMs_Build_and_Train/Train_Tokenizer.ipynb
-!/LLMs_Build_and_Train/requirements.txt
-!/LLMs_Build_and_Train/wiki_tokenizer.model
-!/LLMs_Build_and_Train/wiki_tokenizer.vocab
-!/LLMs_Build_and_Train/wiki_tokenizer_test.model
-!/LLMs_Build_and_Train/wiki_tokenizer_test.vocab
+# Too large for GitHub's 100MB per-file limit
+/LLMs_Build_and_Train/encoded_data.pt
+/LLMs_Build_and_Train/wiki.txt
+/LLMs_Build_and_Train/models/
+
