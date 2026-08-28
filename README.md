@@ -13,7 +13,6 @@ Right now the repository only contains the **`LLMs_Build_and_Train`** section (m
 | [`Train_Tokenizer.ipynb`](LLMs_Build_and_Train/Train_Tokenizer.ipynb) | Trains a Byte Pair Encoding (BPE) tokenizer with [SentencePiece](https://github.com/google/sentencepiece) on a text corpus (`wiki.txt`), producing a `.model`/`.vocab` pair. |
 | [`LLM_Scratch_Simple.ipynb`](LLMs_Build_and_Train/LLM_Scratch_Simple.ipynb) | Implements and trains a decoder-only GPT-style transformer from scratch (embeddings, positional embeddings, causal multi-head self-attention, feed-forward blocks, layer norm, residual connections), then runs an interactive inference loop with the trained model. |
 | `requirements.txt` | Python dependencies for both notebooks. |
-| `wandb/` | Logged metrics from past local training runs ([Weights & Biases](https://wandb.ai)). |
 
 The model implemented in `LLM_Scratch_Simple.ipynb` is a small GPT with:
 
@@ -21,7 +20,7 @@ The model implemented in `LLM_Scratch_Simple.ipynb` is a small GPT with:
 - **Training:** AdamW optimizer with cosine-annealed learning rate, gradient clipping, dropout regularization, checkpointing to `models/`, and optional [Weights & Biases](https://wandb.ai) logging.
 - **Data:** a small excerpt of English Wikipedia (`wiki.txt`), tokenized with a SentencePiece BPE tokenizer trained by `Train_Tokenizer.ipynb`.
 
-Not included in the repository (excluded via `.gitignore` — either too large for GitHub's 100MB file-size limit, or kept local-only by choice): the raw `wiki.txt` corpus, the tokenized `encoded_data.pt`, trained checkpoints under `models/`, and the tokenizer artifacts (`wiki_tokenizer*.model` / `.vocab`). These are all generated locally when you run the notebooks, as described below.
+Not included in the repository (excluded via `.gitignore` — either too large for GitHub's 100MB file-size limit, or kept local-only by choice): the raw `wiki.txt` corpus, the tokenized `encoded_data.pt`, trained checkpoints under `models/`, the tokenizer artifacts (`wiki_tokenizer*.model` / `.vocab`), and `wandb/` run logs. These are all generated locally when you run the notebooks, as described below.
 
 ## Installation
 
