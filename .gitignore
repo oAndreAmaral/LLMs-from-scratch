@@ -1,11 +1,20 @@
-# Only track the LLMs_Build_and_Train section for now
+# Only track the LLMs_Build_and_Train and LLMs_Alignment sections for now
 /*
 !/.gitignore
 !/README.md
 !/LLMs_Build_and_Train/
+!/LLMs_Alignment/
 
 # Too large for GitHub's 100MB per-file limit
 /LLMs_Build_and_Train/encoded_data.pt
 /LLMs_Build_and_Train/models/
 /LLMs_Build_and_Train/wandb/
 /LLMs_Build_and_Train/wiki*
+
+# Too large for GitHub's 100MB per-file limit / generated locally
+/LLMs_Alignment/models/
+/LLMs_Alignment/data/
+/LLMs_Alignment/tokenizers/
+/LLMs_Alignment/wandb/
+/LLMs_Alignment/__pycache__/
+/LLMs_Alignment/.ipynb_checkpoints/

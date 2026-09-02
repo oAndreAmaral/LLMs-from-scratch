@@ -4,7 +4,7 @@ A hands-on implementation of a GPT-style language model built and trained from s
 
 ## What's in this repository
 
-Right now the repository only contains the **`LLMs_Build_and_Train`** section (more sections will be added later).
+The repository has two sections: **`LLMs_Build_and_Train`**, which pre-trains a small GPT from scratch, and **`LLMs_Alignment`**, which aligns a larger pretrained model on preference data.
 
 ### `LLMs_Build_and_Train/`
 
@@ -22,12 +22,28 @@ The model implemented in `LLM_Scratch_Simple.ipynb` is a small GPT with:
 
 Not included in the repository (excluded via `.gitignore` — either too large for GitHub's 100MB file-size limit, or kept local-only by choice): the raw `wiki.txt` corpus, the tokenized `encoded_data.pt`, trained checkpoints under `models/`, the tokenizer artifacts (`wiki_tokenizer*.model` / `.vocab`), and `wandb/` run logs. These are all generated locally when you run the notebooks, as described below.
 
+### `LLMs_Alignment/`
+
+| File | Description |
+|---|---|
+| [`Align_LLM.ipynb`](LLMs_Alignment/Align_LLM.ipynb) | Aligns a pretrained LLM with [ORPO](https://arxiv.org/html/2403.07691) (odds-ratio preference optimization): tokenizes the [`orpo-dpo-mix-40k`](https://huggingface.co/datasets/mlabonne/orpo-dpo-mix-40k) preference dataset, then fine-tunes the model so it favors each pair's chosen answer over the rejected one. |
+| [`llm.py`](LLMs_Alignment/llm.py) | A LLaMA-style decoder-only architecture (RMSNorm, rotary positional embeddings, grouped-query attention) — more sophisticated than `LLM_Scratch_Simple.ipynb`'s — used to load and align the pretrained base checkpoint. |
+| `requirements.txt` | Python dependencies for the notebook. |
+
+The model aligned in `Align_LLM.ipynb` is a bigger, separately pretrained checkpoint:
+
+- **Base model:** ~138M-parameter LLaMA-style transformer (RMSNorm, RoPE, grouped-query attention), pretrained on [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) — the checkpoint is provided separately rather than trained in this repo.
+- **Alignment:** ORPO, which combines the usual next-token cross-entropy loss with an odds-ratio term (scaled by `alpha`) that pushes the model towards each pair's chosen answer and away from the rejected one.
+- **Data:** the `orpo-dpo-mix-40k` preference dataset (chosen/rejected answer pairs), tokenized and cached to `data/`.
+
+Not included in the repository (same reasons as above): the base and aligned checkpoints under `models/`, the tokenizer under `tokenizers/`, the tokenized dataset cache under `data/`, and `wandb/` run logs. Licenses for the third-party code/data reused here (LLaMA2.c, ORPO, `orpo-dpo-mix-40k`) are in [`readme.txt`](LLMs_Alignment/readme.txt).
+
 ## Installation
 
 ### Prerequisites
 
 - Python 3.10+
-- (Optional but recommended) an NVIDIA GPU with CUDA for reasonable training speed — the notebook falls back to CPU automatically if none is available.
+- (Optional but recommended) an NVIDIA GPU with CUDA for reasonable training speed — both notebooks fall back to CPU automatically if none is available, though alignment is more GPU-hungry given the larger base model.
 - A free [Weights & Biases](https://wandb.ai) account if you want training metrics logged (optional — see below).
 
 ### Steps
@@ -36,7 +52,7 @@ Not included in the repository (excluded via `.gitignore` — either too large f
 
    ```bash
    git clone https://github.com/oAndreAmaral/LLMs-from-scratch.git
-   cd LLMs-from-scratch/LLMs_Build_and_Train
+   cd LLMs-from-scratch
    ```
 
 2. **Create and activate a virtual environment** (recommended)
@@ -47,15 +63,18 @@ Not included in the repository (excluded via `.gitignore` — either too large f
    source .venv/bin/activate   # macOS/Linux
    ```
 
-3. **Install PyTorch** for your platform/GPU first, following the selector at [pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/) (e.g. a CUDA build if you have an NVIDIA GPU, otherwise the CPU build). This isn't pinned in `requirements.txt` because the correct wheel depends on your OS/CUDA version.
+3. **Install PyTorch** for your platform/GPU first, following the selector at [pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/) (e.g. a CUDA build if you have an NVIDIA GPU, otherwise the CPU build). This isn't pinned in either `requirements.txt` because the correct wheel depends on your OS/CUDA version.
 
-4. **Install the remaining dependencies**
+4. **Install the dependencies** for whichever section you want to run:
 
    ```bash
-   pip install -r requirements.txt requests
+   pip install -r LLMs_Build_and_Train/requirements.txt requests
+   pip install -r LLMs_Alignment/requirements.txt
    ```
 
 ## Running
+
+### `LLMs_Build_and_Train`
 
 1. **Launch Jupyter**
 
@@ -74,3 +93,19 @@ Not included in the repository (excluded via `.gitignore` — either too large f
    - By default `load_pretrained = True`, so training resumes from `models/latest.pt` if a checkpoint already exists there.
    - Run all cells to train. Checkpoints are saved to `models/` whenever validation loss improves.
    - The final cell starts an interactive loop — type a prompt and press Enter to get a completion from the model, or type `q` to quit.
+
+### `LLMs_Alignment`
+
+1. **Launch Jupyter**
+
+   ```bash
+   jupyter notebook
+   ```
+
+2. **Get the base checkpoint and tokenizer** — unlike `LLM_Scratch_Simple.ipynb`, `Align_LLM.ipynb` doesn't download these automatically, so place the pretrained checkpoint at `models/base_model.pt` and the tokenizer under `tokenizers/tok16384/` before running.
+
+3. **Align the model** — open `Align_LLM.ipynb`:
+   - Review the **training / hyperparameter** parameter cells near the top and adjust as needed (e.g. `batch_size`, `alpha`, `epochs`).
+   - The dataset cell tokenizes [`orpo-dpo-mix-40k`](https://huggingface.co/datasets/mlabonne/orpo-dpo-mix-40k) the first time and caches it to `data/orpo_dataset2/`; later runs load the cached version.
+   - By default `wandb_log = True`; either run `wandb login` beforehand (or paste your API key when prompted) to log metrics, or set `wandb_log = False` in the notebook to skip it.
+   - Run all cells to align the model. The aligned checkpoint is saved to `models/` at the end of training.
